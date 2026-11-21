@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Retour vers Mosala</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { min-height: 100vh; display: grid; place-items: center; background: linear-gradient(135deg, #2D5BE3, #1B3FB0); padding: 20px; }
+    .box { background: #fff; border-radius: 24px; padding: 32px 24px; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,.2); }
+    .logo { width: 64px; height: 64px; border-radius: 20px; background: #2D5BE3; color: #fff; display: grid; place-items: center; font-size: 30px; margin: 0 auto 16px; }
+    h1 { color: #0F172A; font-size: 22px; margin-bottom: 8px; }
+    p { color: #64748B; font-size: 15px; margin-bottom: 22px; }
+    .go { display: block; background: #2D5BE3; color: #fff; text-decoration: none; font-weight: 800; padding: 16px; border-radius: 14px; font-size: 16px; }
+    .err { color: #DC241F; font-weight: 700; }
+    .spin { width: 22px; height: 22px; border: 3px solid #EAF0FF; border-top-color: #2D5BE3; border-radius: 50%; margin: 0 auto 18px; animation: r 0.8s linear infinite; }
+    @keyframes r { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="logo">💼</div>
+    <div class="spin" id="spin"></div>
+    <h1 id="title">Connexion réussie</h1>
+    <p id="msg">Retour dans l'application Mosala…</p>
+    <a class="go" id="go" href="#" style="display:none">Revenir dans Mosala</a>
+  </div>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var app = params.get('app') || 'mosala://auth/callback';
+      var hash = window.location.hash.replace(/^#/, '');
+      var hashParams = new URLSearchParams(hash);
+      var error = hashParams.get('error_description') || params.get('error_description');
+
+      // Sécurité : on ne renvoie les jetons que vers l'application Mosala (ou Expo Go en test)
+      if (!/^(mosala|exp|exps):\/\//i.test(app)) app = 'mosala://auth/callback';
+
+      var target = hash ? app + '#' + hash : app;
+      var go = document.getElementById('go');
+      go.href = target;
+
+      if (error) {
+        document.getElementById('spin').style.display = 'none';
+        document.getElementById('title').textContent = 'Connexion impossible';
+        document.getElementById('msg').innerHTML = '<span class="err">' + error.replace(/\+/g, ' ') + '</span>';
+        go.textContent = 'Retourner dans Mosala';
+        go.style.display = 'block';
+        return;
+      }
+
+      // Tentative automatique, puis bouton si le navigateur bloque l'ouverture
+      window.location.replace(target);
+      setTimeout(function () {
+        document.getElementById('spin').style.display = 'none';
+        document.getElementById('msg').textContent = "Si l'application ne s'ouvre pas toute seule, appuie sur le bouton ci-dessous.";
+        go.style.display = 'block';
+      }, 1200);
+    })();
+  </script>
+</body>
+</html>
